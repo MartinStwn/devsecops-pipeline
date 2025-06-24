@@ -19,6 +19,6 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run Bandit Security Scanner
-        uses: tj-actions/bandit@v6
+        uses: tj-actions/bandit@v1
         with:
           path: .
