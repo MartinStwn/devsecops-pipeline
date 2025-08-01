@@ -1,13 +1,13 @@
-#DevSecops Pipeline Project
+## DevSecops Pipeline Project
 
 
 This repository contains Github Actions workflows used for auotomating security in the development pipeline.
 
 
 ## Folder Structur
-- '.github/workflows/': Github Actions YAML file for CI/CD
-- 'src/': Aplication source code (optimal)
--'docs/': Documentation folder (optimal) 
+- github/workflows/: Github Actions YAML file for CI/CD
+- src/: Aplication source code (optimal)
+- docs/: Documentation folder (optimal) 
 
 ## Workflows Overview
 - Code scanning (e.g., with Gitleaks)
@@ -22,7 +22,7 @@ This repository contains Github Actions workflows used for auotomating security 
 ## Example workflows
 
 Here's an example of a Github Actions workflows that runs Gitleaks for scret scanning
-
+"
 '''yaml 
 name: Gitleaks Scan 
 on: [push]
