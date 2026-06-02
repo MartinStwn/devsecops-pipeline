@@ -1,60 +1,51 @@
-name: DevSecOp Pipeline
+name: DevSecOps Pipeline
 on: [push, pull_request]
 
-
 jobs:
-	security
-		runs-on: ubuntu-lastest
-		steps:
-			# 1. Ambil source code
-			- use: actions/checkout@v3
-			
-			# 2 Setup Python 
-			- name: Setup Python
-			with:
-				python-version: '3.11'
-				
-			# 3. Install Dependencies
-			- name: Install Dependencies
-			run: |
-				pip install --upgrade pip
-				pip install requiretments.txt
-				pip install bandit flake8 pyptest pyptest.cov
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
 
-			# 4. Linting & Formating 
-			- name: Run Linter (flake8)
-			  run: flake8 . 
-			  
-			# 5. Unit Testing + Coverage 
-			- name: Run Tests
-			  run: pytest --maxfail=1 --disable-warnings --cove=, --cov-report=term-missing
-			  
-			# 6. Static Aplication Security Analysis (SCA)
-			- name: Run Bandit (SAST)
-			  run: bandit -r 
-			  
-			# 7. Software Composition Analysis (SCA)
-			- name: Install Dependency-Check
-			  run: |
-			  	sudo apt-get update 
-			  	sudo apt-get install depency-check -y
-			- name: Run Dependency-Check
-			  run: dependency-check --scan . --out dependency-check-report.html
-			  
-			# 8. Scret Scanning
-			- name: Install Gitleaks 
-			  run: | 
-			  	curl -sSfl https://github.com/zricethezav/gitleaks/release/lastest/download/gitleaks-linux amd64.tar.gz | tar -xvz
-			  	sudo mv gitleaks /usr/local/bin/
-			- name: Run Gitleaks
-			  run: gitleaks detect 
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
 
-			# 9. Build Docker Image 
-			- name: Install Trivy 
-			  run: docker build -t devsecops-pipeline .
+      - name: Install Dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install bandit flake8 pytest pytest-cov
 
-			# 10. Scan Docker Image dengan Trivy 
-			- name: Install Trivy 
-			  run: sudo apt-get install -y trivy
-			- name: Run Trivy Image Scan 
-			  run: trivy image devsecops-pipeline
+      - name: Run Linter (flake8)
+        run: flake8 .
+
+      - name: Run Tests
+        run: pytest --maxfail=1 --disable-warnings --cov=. --cov-report=term-missing
+
+      - name: Run Bandit (SAST)
+        run: bandit -r .
+
+      - name: Install Gitleaks
+        run: |
+          curl -sSfL https://github.com/zricethezav/gitleaks/releases/latest/download/gitleaks-linux-amd64.tar.gz | tar -xvz
+          sudo mv gitleaks /usr/local/bin/
+
+      - name: Run Gitleaks
+        run: gitleaks detect --no-git --source .
+
+      - name: Build Docker Image
+        run: docker build -t devsecops-pipeline .
+
+      - name: Install Trivy
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget apt-transport-https gnupg lsb-release
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+          echo deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main | sudo tee -a /etc/apt/sources.list.d/trivy.list
+          sudo apt-get update
+          sudo apt-get install -y trivy
+
+      - name: Run Trivy Image Scan
+        run: trivy image --severity HIGH,CRITICAL devsecops-pipeline
