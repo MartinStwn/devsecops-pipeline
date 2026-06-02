@@ -27,13 +27,10 @@ jobs:
       - name: Run Bandit (SAST)
         run: bandit -r .
 
-      - name: Install Gitleaks
-        run: |
-          curl -sSfL https://github.com/zricethezav/gitleaks/releases/latest/download/gitleaks-linux-amd64.tar.gz | tar -xvz
-          sudo mv gitleaks /usr/local/bin/
-
       - name: Run Gitleaks
-        run: gitleaks detect --no-git --source .
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build Docker Image
         run: docker build -t devsecops-pipeline .
